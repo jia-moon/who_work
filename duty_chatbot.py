@@ -51,7 +51,7 @@ if not os.path.exists(UPLOAD_PATH):
 file_exists = any(fname.endswith(('.xlsx', '.xls', '.csv', '.txt')) for fname in os.listdir(UPLOAD_PATH))
 
 # 로그인 영역 (파일이 없을 때만 비밀번호 입력)
-#if not file_exists:
+if not file_exists:
     st.sidebar.header("🔐 관리자 로그인")
     password_input = st.sidebar.text_input("비밀번호를 입력하세요", type="password")
     is_admin = password_input == ADMIN_PASSWORD
@@ -149,5 +149,5 @@ if uploaded_files:
                     responses.append(f"🛠️ <b>{task}</b>: <b>{person}</b>")
             response = f"📅 <b>{target_date.strftime('%Y-%m-%d')}</b> 전체 담당자 목록:<br>" + "<br>".join(responses)
             chat_bubble(response, sender="bot")
-#else:
-#    st.error("업로드된 파일이 없습니다. 관리자에게 문의하세요.")
+else:
+    st.error("업로드된 파일이 없습니다. 관리자에게 문의하세요.")
