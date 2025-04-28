@@ -38,7 +38,7 @@ def parse_txt(file):
     return df
 
 # 관리자용 비밀번호 설정
-ADMIN_PASSWORD = "your_secret_password"
+ADMIN_PASSWORD = "tltmxpaxla1!"
 
 # 로그인 영역
 st.sidebar.header("🔐 관리자 로그인")
