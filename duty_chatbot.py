@@ -37,23 +37,42 @@ def parse_txt(file):
     df = pd.DataFrame(data)
     return df
 
-# 파일 업로드
-uploaded_file = st.file_uploader("📄 당직표 파일을 업로드하세요 (엑셀 또는 텍스트)", type=["xlsx", "xls", "csv", "txt"])
+# 관리자용 비밀번호 설정
+ADMIN_PASSWORD = "your_secret_password"
 
-if uploaded_file:
-    file_name = uploaded_file.name
-    if file_name.endswith(('.xlsx', '.xls')):
-        df_raw = pd.read_excel(uploaded_file, header=0)
-        is_txt_format = False
-    elif file_name.endswith(('.csv')):
-        df_raw = pd.read_csv(uploaded_file, header=0)
-        is_txt_format = False
-    elif file_name.endswith(('.txt')):
-        df_raw = parse_txt(uploaded_file)
-        is_txt_format = True
-    else:
-        st.error("지원하지 않는 파일 형식입니다.")
-        st.stop()
+# 로그인 영역
+st.sidebar.header("🔐 관리자 로그인")
+password_input = st.sidebar.text_input("비밀번호를 입력하세요", type="password")
+is_admin = password_input == ADMIN_PASSWORD
+
+# 세션 상태를 이용한 파일 저장
+if "df_raw" not in st.session_state:
+    st.session_state.df_raw = None
+    st.session_state.is_txt_format = None
+
+# 파일 업로드 (관리자만)
+if is_admin:
+    uploaded_file = st.file_uploader("📄 당직표 파일을 업로드하세요 (엑셀 또는 텍스트)", type=["xlsx", "xls", "csv", "txt"])
+    if uploaded_file:
+        file_name = uploaded_file.name
+        if file_name.endswith(('.xlsx', '.xls')):
+            st.session_state.df_raw = pd.read_excel(uploaded_file, header=0)
+            st.session_state.is_txt_format = False
+        elif file_name.endswith(('.csv')):
+            st.session_state.df_raw = pd.read_csv(uploaded_file, header=0)
+            st.session_state.is_txt_format = False
+        elif file_name.endswith(('.txt')):
+            st.session_state.df_raw = parse_txt(uploaded_file)
+            st.session_state.is_txt_format = True
+        else:
+            st.error("지원하지 않는 파일 형식입니다.")
+            st.stop()
+else:
+    st.sidebar.info("파일 업로드는 관리자만 가능합니다.")
+
+if st.session_state.df_raw is not None:
+    df_raw = st.session_state.df_raw
+    is_txt_format = st.session_state.is_txt_format
 
     df_raw = df_raw.fillna("")
 
@@ -111,4 +130,4 @@ if uploaded_file:
             response = f"📅 <b>{target_date.strftime('%Y-%m-%d')}</b> 전체 담당자 목록:<br>" + "<br>".join(responses)
             chat_bubble(response, sender="bot")
 else:
-    st.info("👆 엑셀 또는 텍스트 파일을 먼저 업로드해주세요.")
+    st.info("👆 먼저 관리자가 파일을 업로드해야 조회할 수 있습니다.")
