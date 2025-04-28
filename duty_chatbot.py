@@ -39,7 +39,7 @@ def parse_txt(file):
     return df
 
 # 관리자용 비밀번호 설정
-ADMIN_PASSWORD = "your_secret_password"
+ADMIN_PASSWORD = "tltmxpaxla1!"
 
 # 파일 저장 경로
 UPLOAD_PATH = "/tmp/duty_data"
