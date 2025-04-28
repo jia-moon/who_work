@@ -6,7 +6,7 @@ import os
 from io import StringIO
 
 st.set_page_config(page_title="당직 알림 챗봇", layout="centered")
-st.title("🤖 업무별 비상대응 담당자 안내봇")
+st.title("🤖 당직 알림 챗봇")
 
 # 말풍선 스타일 함수
 def chat_bubble(message, sender="user"):
@@ -39,7 +39,7 @@ def parse_txt(file):
     return df
 
 # 관리자용 비밀번호 설정
-ADMIN_PASSWORD = "tltmxpaxla1!"
+ADMIN_PASSWORD = "your_secret_password"
 
 # 파일 저장 경로
 UPLOAD_PATH = "/tmp/duty_data"
@@ -47,32 +47,22 @@ UPLOAD_PATH = "/tmp/duty_data"
 if not os.path.exists(UPLOAD_PATH):
     os.makedirs(UPLOAD_PATH)
 
-# 파일 존재 여부 확인
-file_exists = any(fname.endswith(('.xlsx', '.xls', '.csv', '.txt')) for fname in os.listdir(UPLOAD_PATH))
+# 사이드바 로그인 항상 표시
+st.sidebar.header("🔐 관리자 로그인")
+password_input = st.sidebar.text_input("비밀번호를 입력하세요", type="password")
+is_admin = password_input == ADMIN_PASSWORD
 
-# 로그인 영역 (파일이 없을 때만 비밀번호 입력)
-if not file_exists:
-    st.sidebar.header("🔐 관리자 로그인")
-    password_input = st.sidebar.text_input("비밀번호를 입력하세요", type="password")
-    is_admin = password_input == ADMIN_PASSWORD
-
-    if is_admin:
-        uploaded_file = st.file_uploader("📄 당직표 파일을 업로드하세요 (엑셀 또는 텍스트)", type=["xlsx", "xls", "csv", "txt"])
-        if uploaded_file:
-            # 기존 파일 삭제
-            for old_file in os.listdir(UPLOAD_PATH):
-                old_file_path = os.path.join(UPLOAD_PATH, old_file)
-                os.remove(old_file_path)
-
-            file_path = os.path.join(UPLOAD_PATH, uploaded_file.name)
-            with open(file_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            st.success("파일 업로드가 완료되었습니다. 새로고침 후 사용 가능합니다.")
-            st.stop()
-    else:
-        st.sidebar.info("파일 업로드는 관리자만 가능합니다.")
-        st.info("👆 먼저 관리자가 파일을 업로드해야 조회할 수 있습니다.")
-        st.stop()
+# 파일 업로드 (관리자만)
+if is_admin:
+    uploaded_file = st.sidebar.file_uploader("📄 새 당직표 파일 업로드 (엑셀 또는 텍스트)", type=["xlsx", "xls", "csv", "txt"])
+    if uploaded_file:
+        for old_file in os.listdir(UPLOAD_PATH):
+            old_file_path = os.path.join(UPLOAD_PATH, old_file)
+            os.remove(old_file_path)
+        file_path = os.path.join(UPLOAD_PATH, uploaded_file.name)
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        st.sidebar.success("파일 업로드가 완료되었습니다. 새로고침 후 사용 가능합니다.")
 
 # 파일 불러오기
 uploaded_files = [f for f in os.listdir(UPLOAD_PATH) if f.endswith(('.xlsx', '.xls', '.csv', '.txt'))]
