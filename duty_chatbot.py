@@ -51,7 +51,7 @@ if not os.path.exists(UPLOAD_PATH):
 file_exists = any(fname.endswith(('.xlsx', '.xls', '.csv', '.txt')) for fname in os.listdir(UPLOAD_PATH))
 
 # 로그인 영역 (파일이 없을 때만 비밀번호 입력)
-if not file_exists:
+#if not file_exists:
     st.sidebar.header("🔐 관리자 로그인")
     password_input = st.sidebar.text_input("비밀번호를 입력하세요", type="password")
     is_admin = password_input == ADMIN_PASSWORD
