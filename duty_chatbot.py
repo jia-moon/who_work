@@ -149,5 +149,5 @@ if uploaded_files:
                     responses.append(f"🛠️ <b>{task}</b>: <b>{person}</b>")
             response = f"📅 <b>{target_date.strftime('%Y-%m-%d')}</b> 전체 담당자 목록:<br>" + "<br>".join(responses)
             chat_bubble(response, sender="bot")
-else:
-    st.error("업로드된 파일이 없습니다. 관리자에게 문의하세요.")
+#else:
+#    st.error("업로드된 파일이 없습니다. 관리자에게 문의하세요.")
