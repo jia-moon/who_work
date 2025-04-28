@@ -6,7 +6,7 @@ import os
 from io import StringIO
 
 st.set_page_config(page_title="당직 알림 챗봇", layout="centered")
-st.title("🤖 당직 알림 챗봇")
+st.title("🤖 업무별 비상대응 담당자 안내봇")
 
 # 말풍선 스타일 함수
 def chat_bubble(message, sender="user"):
@@ -59,6 +59,11 @@ if not file_exists:
     if is_admin:
         uploaded_file = st.file_uploader("📄 당직표 파일을 업로드하세요 (엑셀 또는 텍스트)", type=["xlsx", "xls", "csv", "txt"])
         if uploaded_file:
+            # 기존 파일 삭제
+            for old_file in os.listdir(UPLOAD_PATH):
+                old_file_path = os.path.join(UPLOAD_PATH, old_file)
+                os.remove(old_file_path)
+
             file_path = os.path.join(UPLOAD_PATH, uploaded_file.name)
             with open(file_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
