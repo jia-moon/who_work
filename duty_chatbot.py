@@ -6,7 +6,7 @@ import os
 from io import StringIO
 
 st.set_page_config(page_title="당직 알림 챗봇", layout="centered")
-st.title("🤖 당직 알림 챗봇")
+st.title("🤖 스면 비상대응 담당자 알림봇")
 
 # 말풍선 스타일 함수
 def chat_bubble(message, sender="user"):
