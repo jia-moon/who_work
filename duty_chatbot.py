@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 import re
+import os
 from io import StringIO
 
 st.set_page_config(page_title="당직 알림 챗봇", layout="centered")
@@ -38,41 +39,55 @@ def parse_txt(file):
     return df
 
 # 관리자용 비밀번호 설정
-ADMIN_PASSWORD = "tltmxpaxla1!"
+ADMIN_PASSWORD = "your_secret_password"
 
-# 로그인 영역
-st.sidebar.header("🔐 관리자 로그인")
-password_input = st.sidebar.text_input("비밀번호를 입력하세요", type="password")
-is_admin = password_input == ADMIN_PASSWORD
+# 파일 저장 경로
+UPLOAD_PATH = "/tmp/duty_data"
 
-# 세션 상태를 이용한 파일 저장
-if "df_raw" not in st.session_state:
-    st.session_state.df_raw = None
-    st.session_state.is_txt_format = None
+if not os.path.exists(UPLOAD_PATH):
+    os.makedirs(UPLOAD_PATH)
 
-# 파일 업로드 (관리자만)
-if is_admin:
-    uploaded_file = st.file_uploader("📄 당직표 파일을 업로드하세요 (엑셀 또는 텍스트)", type=["xlsx", "xls", "csv", "txt"])
-    if uploaded_file:
-        file_name = uploaded_file.name
-        if file_name.endswith(('.xlsx', '.xls')):
-            st.session_state.df_raw = pd.read_excel(uploaded_file, header=0)
-            st.session_state.is_txt_format = False
-        elif file_name.endswith(('.csv')):
-            st.session_state.df_raw = pd.read_csv(uploaded_file, header=0)
-            st.session_state.is_txt_format = False
-        elif file_name.endswith(('.txt')):
-            st.session_state.df_raw = parse_txt(uploaded_file)
-            st.session_state.is_txt_format = True
-        else:
-            st.error("지원하지 않는 파일 형식입니다.")
+# 파일 존재 여부 확인
+file_exists = any(fname.endswith(('.xlsx', '.xls', '.csv', '.txt')) for fname in os.listdir(UPLOAD_PATH))
+
+# 로그인 영역 (파일이 없을 때만 비밀번호 입력)
+if not file_exists:
+    st.sidebar.header("🔐 관리자 로그인")
+    password_input = st.sidebar.text_input("비밀번호를 입력하세요", type="password")
+    is_admin = password_input == ADMIN_PASSWORD
+
+    if is_admin:
+        uploaded_file = st.file_uploader("📄 당직표 파일을 업로드하세요 (엑셀 또는 텍스트)", type=["xlsx", "xls", "csv", "txt"])
+        if uploaded_file:
+            file_path = os.path.join(UPLOAD_PATH, uploaded_file.name)
+            with open(file_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            st.success("파일 업로드가 완료되었습니다. 새로고침 후 사용 가능합니다.")
             st.stop()
-else:
-    st.sidebar.info("파일 업로드는 관리자만 가능합니다.")
+    else:
+        st.sidebar.info("파일 업로드는 관리자만 가능합니다.")
+        st.info("👆 먼저 관리자가 파일을 업로드해야 조회할 수 있습니다.")
+        st.stop()
 
-if st.session_state.df_raw is not None:
-    df_raw = st.session_state.df_raw
-    is_txt_format = st.session_state.is_txt_format
+# 파일 불러오기
+uploaded_files = [f for f in os.listdir(UPLOAD_PATH) if f.endswith(('.xlsx', '.xls', '.csv', '.txt'))]
+if uploaded_files:
+    file_name = uploaded_files[0]
+    file_path = os.path.join(UPLOAD_PATH, file_name)
+
+    if file_name.endswith(('.xlsx', '.xls')):
+        df_raw = pd.read_excel(file_path, header=0)
+        is_txt_format = False
+    elif file_name.endswith(('.csv')):
+        df_raw = pd.read_csv(file_path, header=0)
+        is_txt_format = False
+    elif file_name.endswith(('.txt')):
+        with open(file_path, "rb") as f:
+            df_raw = parse_txt(f)
+        is_txt_format = True
+    else:
+        st.error("지원하지 않는 파일 형식입니다.")
+        st.stop()
 
     df_raw = df_raw.fillna("")
 
@@ -130,4 +145,4 @@ if st.session_state.df_raw is not None:
             response = f"📅 <b>{target_date.strftime('%Y-%m-%d')}</b> 전체 담당자 목록:<br>" + "<br>".join(responses)
             chat_bubble(response, sender="bot")
 else:
-    st.info("👆 먼저 관리자가 파일을 업로드해야 조회할 수 있습니다.")
+    st.error("업로드된 파일이 없습니다. 관리자에게 문의하세요.")
